@@ -1,0 +1,30 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  creationTimestamp: null
+  name: purge-key-without-ttl-job
+spec:
+  template:
+    metadata:
+      creationTimestamp: null
+    spec:
+      containers:
+      # - command:
+      #   - /bin/sleep
+      #   - "300"
+      - command:
+        - /scripts/redis-command.sh
+        image: redis:5.0.9-buster
+        imagePullPolicy: Always
+        name: purge-key-without-ttl-job
+        resources: {}
+        volumeMounts:
+        - name: redis-purge-script
+          mountPath: ./scripts
+      restartPolicy: Never
+      volumes:
+        - name: redis-purge-script
+          configMap:
+            name: purge-key-without-ttl-job
+            defaultMode: 0500
+status: {}
