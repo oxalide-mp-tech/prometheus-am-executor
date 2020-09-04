@@ -8,7 +8,7 @@ on:
   push:
     branches: [ master ]
 # Sequence of patterns matched against refs/tags
-    tags:        
+    tags:
       - v             # Push events to v1 tag
       - v.*           # Push events to v1.0, v1.1, and v1.9 tags
   pull_request:
@@ -38,7 +38,7 @@ jobs:
         # Docker repository to tag the image with
         repository: azman0101/prometheus-am-executor
         # Comma-delimited list of tags. These will be added to the registry/repository to form the image's tags
-        # tags: v1.0.0
+        tags: v1.2
         # Automatically tags the built image with the git reference as per the readme
         tag_with_ref: true # optional
         # Automatically tags the built image with the git short SHA as per the readme
@@ -46,7 +46,7 @@ jobs:
         # Path to the build context
         # path: # optional, default is .
         # Path to the Dockerfile (Default is '{path}/Dockerfile')
-        dockerfile: ${{ github.workspace }}/Dockerfile # optional
+        dockerfile: Dockerfile # optional
         # Sets the target stage to build
         # target: # optional
         # Always attempt to pull a newer version of the image
