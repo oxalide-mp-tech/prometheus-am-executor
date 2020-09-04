@@ -1,0 +1,124 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  creationTimestamp: null
+  name: prometheus-am-executor
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    run: prometheus-am-executor
+  name: prometheus-am-executor
+  namespace: prometheus-am-executor
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      run: prometheus-am-executor
+  strategy: {}
+  template:
+    metadata:
+      labels:
+        run: prometheus-am-executor
+    spec:
+      containers:
+      - image: azman0101/prometheus-am-executor:v1.2
+        imagePullPolicy: Always
+        name: prometheus-am-executor
+        ports:
+        - containerPort: 8080
+          name: http
+        command: ["/usr/local/go/bin/prometheus-am-executor", "-v", "examples/purge-redis"]
+        resources: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    run: prometheus-am-executor
+  name: prometheus-am-executor
+  namespace: prometheus-am-executor
+spec:
+  ports:
+  - port: 80
+    protocol: TCP
+    targetPort: http
+  selector:
+    run: prometheus-am-executor
+  sessionAffinity: None
+  type: ClusterIP
+---
+apiVersion: v1
+data:
+  redis-command.sh: |
+    #!/bin/bash
+
+    DEBIAN_FRONTEND=noninteractive apt update && apt install -yqq curl
+    /usr/local/bin/redis-cli -h kv-memory-redis-ha-announce-0.redis --scan | while read LINE ; do TTL=$(redis-cli -h kv-memory-redis-ha-announce-0.redis ttl "$LINE"); if [ $TTL -eq  -1 ]; then echo "$LINE"; fi; done > keys.txt
+    /bin/cat keys.txt
+    for n in {0..2}; do
+      if /usr/local/bin/redis-cli -h kv-memory-redis-ha-announce-${n}.redis info | grep -E "role:master";
+      then
+         MASTER_REDIS_NUM=${n}
+         echo "Redis Master is kv-memory-redis-ha-announce-${MASTER_REDIS_NUM}.redis"
+         break
+      fi
+    done
+    for key in $(/bin/cat keys.txt); do /usr/local/bin/redis-cli -h kv-memory-redis-ha-announce-${MASTER_REDIS_NUM}.redis del "${key}"; done
+
+    CHANNEL="${CHANNEL_CI-@julien.boulanger}"
+    USERNAME="PurgeRedisKeyWithoutTTL"
+    EMOJI=":information_source:"
+    KEYS=$(/bin/cat keys.txt)
+    SLACK_MSG="Clé redis sans TTL purgée:\n${KEYS}"
+    PAYLOAD="payload={\"channel\": \"${CHANNEL}\", \"username\": \"${USERNAME}\", \"text\": \"${SLACK_MSG}\", \"icon_emoji\": \"${EMOJI}\"}"
+    HOOK=https://hooks.slack.com/services/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
+    # TODO: call slack to customer
+    if [ "${ENABLE_SLACK_NOTIFICATION:-true}" = "true" ]
+    then
+        echo "Sending slack notification..."
+        # curl -sX POST --data-urlencode "${PAYLOAD}" "${HOOK}"
+    else
+        echo "Slack notification disabled"
+    fi
+    # TODO: delete job
+kind: ConfigMap
+metadata:
+  creationTimestamp: null
+  name: purge-key-without-ttl-job
+  namespace: prometheus-am-executor
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  creationTimestamp: null
+  name: allow-create-job-redis-purge
+  namespace: prometheus-am-executor
+rules:
+- apiGroups:
+  - batch
+  resources:
+  - jobs
+  verbs:
+  - create
+  - patch
+  - delete
+  - get
+  - list
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  creationTimestamp: null
+  name: allow-default-to-purge-redis-keys
+  namespace: prometheus-am-executor
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: allow-create-job-redis-purge
+subjects:
+- kind: ServiceAccount
+  name: default
+  namespace: prometheus-am-executor
