@@ -24,14 +24,23 @@ spec:
         run: prometheus-am-executor
     spec:
       containers:
-      - image: azman0101/prometheus-am-executor:v1.2
+      - image: azman0101/prometheus-am-executor:v1.4
         imagePullPolicy: Always
         name: prometheus-am-executor
         ports:
         - containerPort: 8080
           name: http
-        command: ["/usr/local/go/bin/prometheus-am-executor", "-v", "examples/purge-redis"]
+        command: ["/usr/local/go/bin/prometheus-am-executor", "-v", "/manifests-v1/purge-redis"]
         resources: {}
+        volumeMounts:
+        - name: purge-key-without-ttl-job
+          mountPath: ./manifests-v1
+      restartPolicy: Always
+      volumes:
+        - name: purge-key-without-ttl-job
+          configMap:
+            name: purge-key-without-ttl-job
+            defaultMode: 0500
 ---
 apiVersion: v1
 kind: Service
@@ -54,10 +63,14 @@ apiVersion: v1
 data:
   redis-command.sh: |
     #!/bin/bash
-
+    set -euox pipefail
     DEBIAN_FRONTEND=noninteractive apt update && apt install -yqq curl
-    /usr/local/bin/redis-cli -h kv-memory-redis-ha-announce-0.redis --scan | while read LINE ; do TTL=$(redis-cli -h kv-memory-redis-ha-announce-0.redis ttl "$LINE"); if [ $TTL -eq  -1 ]; then echo "$LINE"; fi; done > keys.txt
-    /bin/cat keys.txt
+    DBS=$(/usr/local/bin/redis-cli -h kv-memory-redis-ha-announce-0.redis info keyspace | awk -F":" '{print $1}' | tail -n +2 | awk '{print substr($1,3); }')
+    for db_num in ${DBS}; do
+      /usr/local/bin/redis-cli -h kv-memory-redis-ha-announce-0.redis -n ${db_num} --scan | while read LINE ; do TTL=$(redis-cli -n ${db_num} -h kv-memory-redis-ha-announce-0.redis -n ${db_num} ttl "$LINE"); if [ $TTL -eq  -1 ]; then echo "$LINE"; fi; done > "keys${db_num}.txt"
+      echo "For DB ${db_num}:"
+      /bin/cat "keys${db_num}.txt"
+    done
     for n in {0..2}; do
       if /usr/local/bin/redis-cli -h kv-memory-redis-ha-announce-${n}.redis info | grep -E "role:master";
       then
@@ -66,24 +79,78 @@ data:
          break
       fi
     done
-    for key in $(/bin/cat keys.txt); do /usr/local/bin/redis-cli -h kv-memory-redis-ha-announce-${MASTER_REDIS_NUM}.redis del "${key}"; done
+    for db_num in ${DBS}; do
+      for key in $(/bin/cat "keys${db_num}.txt"); do /usr/local/bin/redis-cli -h kv-memory-redis-ha-announce-${MASTER_REDIS_NUM}.redis -n ${db_num} del "${key}"; done
+    done
 
     CHANNEL="${CHANNEL_CI-@julien.boulanger}"
     USERNAME="PurgeRedisKeyWithoutTTL"
     EMOJI=":information_source:"
-    KEYS=$(/bin/cat keys.txt)
+    KEYS=$(/bin/cat keys${db_num}.txt)
     SLACK_MSG="Clé redis sans TTL purgée:\n${KEYS}"
     PAYLOAD="payload={\"channel\": \"${CHANNEL}\", \"username\": \"${USERNAME}\", \"text\": \"${SLACK_MSG}\", \"icon_emoji\": \"${EMOJI}\"}"
-    HOOK=https://hooks.slack.com/services/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
     # TODO: call slack to customer
     if [ "${ENABLE_SLACK_NOTIFICATION:-true}" = "true" ]
     then
         echo "Sending slack notification..."
-        # curl -sX POST --data-urlencode "${PAYLOAD}" "${HOOK}"
+        curl -sX POST --data-urlencode "${PAYLOAD}" "${HOOK}"
     else
         echo "Slack notification disabled"
     fi
     # TODO: delete job
+  purge-key-without-ttl-job.yaml: |
+    apiVersion: batch/v1
+    kind: Job
+    metadata:
+      creationTimestamp: null
+      name: purge-key-without-ttl-job
+    spec:
+      template:
+        metadata:
+          creationTimestamp: null
+        spec:
+          containers:
+          # - command:
+          #   - /bin/sleep
+          #   - "300"
+          - command:
+            - /scripts/redis-command.sh
+            image: redis:5.0.9-buster
+            imagePullPolicy: Always
+            name: purge-key-without-ttl-job
+            env:
+            - name: HOOK
+              value: https://hooks.slack.com/services/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
+            - name: CHANNEL_CI
+              value: staging-k8s
+            resources: {}
+            volumeMounts:
+            - name: redis-purge-script
+              mountPath: ./scripts
+          restartPolicy: Never
+          volumes:
+            - name: redis-purge-script
+              configMap:
+                name: purge-key-without-ttl-job
+                defaultMode: 0500
+    status: {}
+  purge-redis: |
+    #!/bin/bash
+    set -euo pipefail
+
+    if [[ "$AMX_STATUS" = "resolved" ]]; then
+      kubectl delete -f /manifests-v1/purge-key-without-ttl-job.yaml || exit 0
+      exit 0
+    fi
+
+    main() {
+      for i in $(seq 1 "$AMX_ALERT_LEN"); do
+        kubectl apply -f /manifests-v1/purge-key-without-ttl-job.yaml
+      done
+      wait
+    }
+
+    main "$@"
 kind: ConfigMap
 metadata:
   creationTimestamp: null
