@@ -10,7 +10,7 @@ executes a given command with alert details set as environment variables.
 
 We haven't needed to update this program in some time. If you are looking for
 something with similar functionality and is more actively maintained,
-@aantn has suggested their project:
+[@aantn](https://github.com/aantn) has suggested their project:
 [Robusta](https://github.com/robusta-dev/robusta) ([docs](https://docs.robusta.dev/master/))
 
 [issue 7](https://github.com/imgix/prometheus-am-executor/issues/7)
