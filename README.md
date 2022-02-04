@@ -6,6 +6,16 @@ The prometheus-am-executor is a HTTP server that receives alerts from the
 [Prometheus Alertmanager](https://prometheus.io/docs/alerting/alertmanager/) and
 executes a given command with alert details set as environment variables.
 
+:information_source: **This project's development is currently stale**
+
+We haven't needed to update this program in some time. If you are looking for
+something with similar functionality and is more actively maintained,
+[@aantn](https://github.com/aantn) has suggested their project:
+[Robusta](https://github.com/robusta-dev/robusta) ([docs](https://docs.robusta.dev/master/))
+
+[issue 7](https://github.com/imgix/prometheus-am-executor/issues/7)
+has discussion relating to the status of this project.
+
 ## Building
 
 ##### Requirements
