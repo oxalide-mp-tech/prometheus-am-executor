@@ -24,7 +24,7 @@ spec:
         run: prometheus-am-executor
     spec:
       containers:
-      - image: azman0101/prometheus-am-executor:v1.4
+      - image: azman0101/prometheus-am-executor:v1.5
         imagePullPolicy: Always
         name: prometheus-am-executor
         ports:
@@ -105,6 +105,7 @@ data:
       creationTimestamp: null
       name: purge-key-without-ttl-job
     spec:
+      ttlSecondsAfterFinished: 10
       template:
         metadata:
           creationTimestamp: null
