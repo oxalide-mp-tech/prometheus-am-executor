@@ -14,7 +14,7 @@ spec:
       #   - "300"
       - command:
         - /scripts/redis-command.sh
-        image: redis:5.0.9-buster
+        image: redis:6-bookworm
         imagePullPolicy: Always
         name: purge-key-without-ttl-job
         resources: {}
