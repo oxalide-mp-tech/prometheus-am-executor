@@ -24,10 +24,10 @@ jobs:
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
     # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
 
     - name: Build and push Docker images
-      uses: docker/build-push-action@v1.1.0
+      uses: docker/build-push-action@v5
       with:
         # Username used to log in to a Docker registry. If not set then no login will occur
         username: azman0101
