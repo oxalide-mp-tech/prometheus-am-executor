@@ -121,7 +121,7 @@ data:
             name: purge-key-without-ttl-job
             env:
             - name: HOOK
-              value: https://hooks.slack.com/services/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
+              value: https://hooks.slack.com/services/XXX
             - name: CHANNEL_CI
               value: staging-k8s
             resources: {}
