@@ -8,3 +8,5 @@ bin
 
 # Ignore tls certs dir
 certs
+
+scripts
