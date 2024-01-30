@@ -30,7 +30,7 @@ spec:
         ports:
         - containerPort: 8080
           name: http
-        command: ["/usr/local/go/bin/prometheus-am-executor", "-v", "/manifests-v1/purge-redis"]
+        command: ["/usr/local/go/bin/prometheus-am-executor", "-v", "/manifests-v1/purge-redis.sh"]
         resources: {}
         volumeMounts:
         - name: purge-key-without-ttl-job
