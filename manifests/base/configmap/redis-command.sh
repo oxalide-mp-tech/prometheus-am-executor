@@ -29,7 +29,7 @@ PAYLOAD="payload={\"channel\": \"${CHANNEL}\", \"username\": \"${USERNAME}\", \"
 if [ "${ENABLE_SLACK_NOTIFICATION:-true}" = "true" ]
 then
     echo "Sending slack notification..."
-    curl -sX POST --data-urlencode "${PAYLOAD}" "${HOOK}"
+    curl -sX POST --data-urlencode "${PAYLOAD}" "${SLACK_HOOK}"
 else
     echo "Slack notification disabled"
 fi
