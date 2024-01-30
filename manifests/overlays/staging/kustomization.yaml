@@ -15,8 +15,3 @@ secretGenerator:
   options:
     disableNameSuffixHash: true
   type: Opaque
-
-# configMapGenerator:
-#   - name: config-example
-#     env: config.properties
-

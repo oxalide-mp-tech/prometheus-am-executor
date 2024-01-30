@@ -12,8 +12,3 @@ secretGenerator:
   envs:
   - .env.secret
   type: Opaque
-
-# configMapGenerator:
-#   - name: config-example
-#     env: config.properties
-
