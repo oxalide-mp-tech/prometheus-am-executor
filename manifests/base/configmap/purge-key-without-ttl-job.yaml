@@ -3,7 +3,9 @@ kind: Job
 metadata:
   creationTimestamp: null
   name: purge-key-without-ttl-job
+  namespace: prometheus-am-executor
 spec:
+  ttlSecondsAfterFinished: 10
   template:
     metadata:
       creationTimestamp: null
@@ -17,6 +19,12 @@ spec:
         image: redis:6-bookworm
         imagePullPolicy: Always
         name: purge-key-without-ttl-job
+        env:
+        - name: CHANNEL_CI
+          value: staging-k8s
+        envFrom:
+        - secretRef:
+            name: slack-secrets
         resources: {}
         volumeMounts:
         - name: redis-purge-script
