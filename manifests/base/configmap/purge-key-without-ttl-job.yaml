@@ -1,0 +1,40 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  creationTimestamp: null
+  name: purge-key-without-ttl-job
+  namespace: prometheus-am-executor
+spec:
+  ttlSecondsAfterFinished: 10
+  template:
+    metadata:
+      creationTimestamp: null
+    spec:
+      containers:
+      # - command:
+      #   - /bin/sleep
+      #   - "300"
+      - command:
+        - /scripts/redis-command.sh
+        image: redis:6-bookworm
+        imagePullPolicy: Always
+        name: purge-key-without-ttl-job
+        env:
+        - name: HOOK
+          valueFrom:
+          secretKeyRef:
+            name: slack-secrets
+            key: SLACK_HOOK
+        - name: CHANNEL_CI
+          value: staging-k8s
+        resources: {}
+        volumeMounts:
+        - name: redis-purge-script
+          mountPath: ./scripts
+      restartPolicy: Never
+      volumes:
+        - name: redis-purge-script
+          configMap:
+            name: purge-key-without-ttl-job
+            defaultMode: 0500
+status: {}
