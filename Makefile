@@ -2,7 +2,7 @@ ifndef TMPDIR
 export TMPDIR := /tmp
 endif
 
-.PHONY = test deps env build all
+.PHONY = test deps env build install all
 
 export GOPATH := $(TMPDIR)/prometheus-am-executor-go
 export GOBIN := $(GOPATH)/bin
@@ -21,4 +21,7 @@ build: deps
 test: build
 	go test -count 1 ./...
 
-all: test build
+install: test
+	mv $(GOBIN)/prometheus-am-executor /usr/local/go/bin/
+
+all: test build install
