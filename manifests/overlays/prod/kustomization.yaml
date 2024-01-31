@@ -9,6 +9,9 @@ images:
 
 secretGenerator:
 - name: slack-secrets
+  namespace: prometheus-am-executor
   envs:
   - .env.secret
+  options:
+    disableNameSuffixHash: true
   type: Opaque
