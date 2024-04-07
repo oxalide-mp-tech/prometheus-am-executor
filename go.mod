@@ -4,7 +4,7 @@ go 1.21.6
 
 require (
 	github.com/imgix/prometheus-am-executor v1.0.0
-	github.com/juju/testing v1.1.0
+	github.com/juju/testing v1.2.0
 	github.com/prometheus/alertmanager v0.27.0
 	github.com/prometheus/client_golang v1.19.0
 	github.com/prometheus/client_model v0.6.1
@@ -16,7 +16,7 @@ require (
 	github.com/cespare/xxhash/v2 v2.2.0 // indirect
 	github.com/go-kit/log v0.2.1 // indirect
 	github.com/go-logfmt/logfmt v0.5.1 // indirect
-	github.com/juju/loggo v1.0.0 // indirect
+	github.com/juju/loggo/v2 v2.0.0 // indirect
 	github.com/kr/pretty v0.3.1 // indirect
 	github.com/kr/text v0.2.0 // indirect
 	github.com/prometheus/common v0.48.0 // indirect
