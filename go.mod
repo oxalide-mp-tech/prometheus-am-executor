@@ -1,6 +1,6 @@
 module github.com/jboulanger/prometheus-am-executor
 
-go 1.21
+go 1.21.9
 
 require (
 	github.com/imgix/prometheus-am-executor v1.0.0
