@@ -1,4 +1,4 @@
-FROM golang:1.21.6-alpine3.19
+FROM golang:1.22.3-alpine3.20
 RUN apk add -U make gcc musl-dev bash curl git
 COPY . .
 RUN set
