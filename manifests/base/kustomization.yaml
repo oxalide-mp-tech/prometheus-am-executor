@@ -7,11 +7,11 @@ resources:
 - deployment.yaml
 
 # declare ConfigMap from a ConfigMapGenerator
-configMapGenerator:
-- name: purge-key-without-ttl-job
-  namespace: prometheus-am-executor
-  files:
     # configfile is used as key
-    - configmap/purge-key-without-ttl-job.yaml
-    - configmap/purge-redis.sh
-    - configmap/redis-command.sh
+configMapGenerator:
+- files:
+  - configmap/purge-key-without-ttl-job.yaml
+  - configmap/purge-redis.sh
+  - configmap/redis-command.sh
+  name: purge-key-without-ttl-job
+  namespace: prometheus-am-executor
