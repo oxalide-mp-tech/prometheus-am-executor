@@ -3,13 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/imgix/prometheus-am-executor/chanmap"
-	"github.com/imgix/prometheus-am-executor/countermap"
-	"github.com/prometheus/alertmanager/template"
-	"github.com/prometheus/client_golang/prometheus"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
-	pm "github.com/prometheus/client_model/go"
-	"io/ioutil"
+	"io"
 	"log"
 	"net/http"
 	"os"
@@ -17,6 +11,13 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/imgix/prometheus-am-executor/chanmap"
+	"github.com/imgix/prometheus-am-executor/countermap"
+	"github.com/prometheus/alertmanager/template"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
+	pm "github.com/prometheus/client_model/go"
 )
 
 const (
@@ -300,7 +301,7 @@ func (s *Server) handleWebhook(w http.ResponseWriter, req *http.Request) {
 	if s.config.Verbose {
 		log.Println("Webhook triggered from remote address:port", req.RemoteAddr)
 	}
-	data, err := ioutil.ReadAll(req.Body)
+	data, err := io.ReadAll(req.Body)
 	if err != nil {
 		handleError(w, err)
 		s.errCounter.WithLabelValues(ErrLabelRead).Inc()

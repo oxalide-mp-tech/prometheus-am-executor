@@ -15,3 +15,5 @@ configMapGenerator:
   - configmap/redis-command.sh
   name: purge-key-without-ttl-job
   namespace: prometheus-am-executor
+  options:
+    disableNameSuffixHash: true
