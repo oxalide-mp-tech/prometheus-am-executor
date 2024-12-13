@@ -36,6 +36,10 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+      - name: Attest
+        uses: actions/attest-build-provenance@v2
+        with:
+          subject-path: '${{ github.workspace }}'
 
       # Install the cosign tool except on PR
       # https://github.com/sigstore/cosign-installer
