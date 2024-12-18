@@ -5,7 +5,7 @@ metadata:
   name: purge-key-without-ttl-job
   namespace: prometheus-am-executor
 spec:
-  ttlSecondsAfterFinished: 10
+  ttlSecondsAfterFinished: 300
   template:
     metadata:
       creationTimestamp: null
@@ -15,6 +15,8 @@ spec:
       #   - /bin/sleep
       #   - "300"
       - command:
+        - /bin/bash
+        - -c
         - /scripts/redis-command.sh
         image: redis:7-bookworm
         imagePullPolicy: Always
